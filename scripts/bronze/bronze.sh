@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Exit if any command fails
 set -e
 
 # Database Configuration
@@ -8,22 +9,22 @@ DB_USER="postgres"
 DB_HOST="localhost"
 DB_PORT="5432"
 export PGPASSWORD="*******"
-
 # directories
 
-CRM_DIR="/home/amar-kola/Documents/datasets/source_crm"
-ERP_DIR="/home/amar-kola/Documents/datasets/source_erp"
+CRM_DIR="/home/kola/Documents/datasets/source_crm"
+ERP_DIR="/home/kola/Documents/datasets/source_erp"
+DDL_FILE="/home/kola/Desktop/Datawarehoue/bronze/bronze_ddl.sql"
 
 load_table(){
 local table=$1
 local file=$2
 
 echo ">> Truncating Table: $table"
-PGPASSWORD="Amar@0331" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE $table;"
+PGPASSWORD="*******" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE $table;"
 echo ">> Inserting Data Into: $table"
 
 local start_time=$(date +%s)
-PGPASSWORD="Amar@0331" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c \
+PGPASSWORD="******" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c \
         "\copy $table FROM '$file' WITH DELIMITER ',' CSV HEADER;"
 local end_time=$(date +%s)
 local duration=$((end_time - start_time))
@@ -51,6 +52,11 @@ echo "====================================="
 echo "Loading Bronze Layer"
 echo "====================================="
 
+# --- RUN DDL FILE ---
+echo ">> Running DDL Script: $DDL_FILE"
+PGPASSWORD="*******" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$DDL_FILE"
+echo ">> DDL Execution Completed Successfully."
+echo "-------------------------------------"
 # --- CRM TABLES ---
 
 echo "-------------------------------------"
